@@ -7,18 +7,25 @@ export default function App() {
   const [fromCurrency, setFromCurrency] = useState("USD");
   const [toCurrency, setToCurrency] = useState("EUR");
   const [converted, setConverted] = useState("");
+  const [isloading, setIsLoading] = useState(false);
 
-  useEffect(function () {
-    async function convertCurrency() {
-      const res = await fetch(
-        `https://api.frankfurter.app/latest?amount=${amount}&from=${fromCurrency}&to=${toCurrency}`,
-      );
-      const data = await res.json();
-      setConverted(data.rates[toCurrency]);
-    }
+  useEffect(
+    function () {
+      async function convertCurrency() {
+        setIsLoading(true);
+        const res = await fetch(
+          `https://api.frankfurter.app/latest?amount=${amount}&from=${fromCurrency}&to=${toCurrency}`,
+        );
+        const data = await res.json();
+        setConverted(data.rates[toCurrency]);
+        setIsLoading(false);
+      }
 
-    convertCurrency();
-  }, []);
+      if (fromCurrency === toCurrency) return setConverted(amount);
+      convertCurrency();
+    },
+    [amount, fromCurrency, toCurrency],
+  );
 
   return (
     <div>
@@ -26,10 +33,12 @@ export default function App() {
         type="text"
         value={amount}
         onChange={(e) => setAmount(Number(e.target.value))}
+        disabled={isloading}
       />
       <select
         value={fromCurrency}
         onChange={(e) => setFromCurrency(e.target.value)}
+        disabled={isloading}
       >
         <option value="USD">USD</option>
         <option value="EUR">EUR</option>
@@ -39,6 +48,7 @@ export default function App() {
       <select
         value={toCurrency}
         onChange={(e) => setToCurrency(e.target.value)}
+        disabled={isloading}
       >
         <option value="USD">USD</option>
         <option value="EUR">EUR</option>
